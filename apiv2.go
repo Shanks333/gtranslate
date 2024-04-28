@@ -3,18 +3,21 @@ package gtranslate
 import (
 	"encoding/json"
 	"fmt"
+	"golang.org/x/text/language"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
-
-	"golang.org/x/text/language"
 
 	"github.com/robertkrimen/otto"
 )
 
-var ttk otto.Value
+var (
+	ttk   otto.Value
+	mutex = sync.Mutex{}
+)
 
 func init() {
 	ttk, _ = otto.ToValue("0")
@@ -44,7 +47,9 @@ func translate(text, from, to string, withVerification bool, tries int, delay ti
 
 	urll := fmt.Sprintf("https://translate.%s/translate_a/single", GoogleHost)
 
+	mutex.Lock()
 	token := get(t, ttk)
+	mutex.Unlock()
 
 	data := map[string]string{
 		"client": "gtx",
